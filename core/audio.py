@@ -2,6 +2,7 @@
 
 import logging
 import threading
+import time
 import numpy as np
 
 log = logging.getLogger(__name__)
@@ -12,6 +13,12 @@ except ImportError:
     import pyaudio  # fallback — no loopback support
 
 from config import SAMPLE_RATE, CHANNELS
+
+# Prevent immediate garbage collection of PortAudio instances.
+# pa.terminate() can segfault when PyQt6 is still active (both fight
+# over native resources).  Stashing here keeps them alive until process
+# exit, where the OS handles cleanup safely.
+_deferred_pa = []
 
 
 def list_audio_devices():
@@ -144,6 +151,32 @@ class AudioCapture:
             self._running = False
             raise RuntimeError(self._start_error)
 
+    def _audio_callback(self, in_data, frame_count, time_info, status):
+        """PortAudio callback — runs in a native audio thread."""
+        if not self._running:
+            return (None, pyaudio.paComplete)
+
+        try:
+            chunk = np.frombuffer(in_data, dtype=np.float32)
+
+            # Multi-channel → mono
+            if self._channels > 1:
+                chunk = chunk.reshape(-1, self._channels).mean(axis=1)
+
+            # Resample to target rate if needed
+            if self._native_rate != self.target_rate:
+                ratio = self.target_rate / self._native_rate
+                new_len = int(len(chunk) * ratio)
+                if new_len > 0:
+                    indices = np.linspace(0, len(chunk) - 1, new_len).astype(int)
+                    chunk = chunk[indices]
+
+            self.audio_queue.put(("audio", chunk))
+        except Exception as e:
+            self.audio_queue.put(("error", str(e)))
+
+        return (None, pyaudio.paContinue)
+
     def _run(self):
         try:
             blocksize = int(self._native_rate * 0.03)  # 30ms at native rate
@@ -157,31 +190,15 @@ class AudioCapture:
                 input=True,
                 input_device_index=self.device_index,
                 frames_per_buffer=blocksize,
+                stream_callback=self._audio_callback,
             )
+            self._stream.start_stream()
             log.info("Audio stream started successfully")
             self._started_event.set()
 
-            while self._running:
-                try:
-                    data = self._stream.read(blocksize, exception_on_overflow=False)
-                    chunk = np.frombuffer(data, dtype=np.float32)
-
-                    # Multi-channel → mono
-                    if self._channels > 1:
-                        chunk = chunk.reshape(-1, self._channels).mean(axis=1)
-
-                    # Resample to target rate if needed
-                    if self._native_rate != self.target_rate:
-                        ratio = self.target_rate / self._native_rate
-                        new_len = int(len(chunk) * ratio)
-                        if new_len > 0:
-                            indices = np.linspace(0, len(chunk) - 1, new_len).astype(int)
-                            chunk = chunk[indices]
-
-                    self.audio_queue.put(("audio", chunk))
-                except IOError as e:
-                    if self._running:
-                        log.debug("Audio read warning: %s", e)
+            # Sleep loop — non-blocking, exits quickly when _running is False
+            while self._running and self._stream.is_active():
+                time.sleep(0.1)
 
         except Exception as e:
             log.error("Audio capture error: %s", e, exc_info=True)
@@ -202,10 +219,9 @@ class AudioCapture:
         if self._thread is not None:
             self._thread.join(timeout=3)
             self._thread = None
+        # Defer pa.terminate() — calling it while PyQt6 is active can
+        # segfault (same native-resource conflict as CUDA models).
         if self._pa is not None:
-            try:
-                self._pa.terminate()
-            except Exception:
-                pass
+            _deferred_pa.append(self._pa)
             self._pa = None
         log.info("Audio capture stopped")

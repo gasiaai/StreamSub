@@ -40,7 +40,7 @@ ASR_MIN_SEGMENT_LENGTH = 0.5  # seconds — skip very short segments
 # --- Ollama Translation ---
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "scb10x/typhoon-translate1.5-4b")
-OLLAMA_TIMEOUT = 30  # seconds per translation request
+OLLAMA_TIMEOUT = 15  # seconds per translation request
 
 TRANSLATION_PROMPT = """You are a translator. Translate the following {source_lang} text into {lang} ({lang_native}).
 Rules:
