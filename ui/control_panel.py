@@ -8,7 +8,7 @@ from PyQt6.QtWidgets import (
     QCheckBox, QMessageBox,
 )
 
-from core.audio import list_loopback_devices
+from core.audio import list_audio_devices
 from core.pipeline import Pipeline
 from ui.overlay import SubtitleOverlay
 from ui.translations import UI_LANGUAGES, t
@@ -328,7 +328,7 @@ class ControlPanel(QWidget):
 
     def _load_devices(self):
         self.device_combo.clear()
-        devices = list_loopback_devices()
+        devices = list_audio_devices()
         for idx, name in devices:
             self.device_combo.addItem(name, idx)
 
