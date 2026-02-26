@@ -110,7 +110,8 @@ class ControlPanel(QWidget):
 
     def _setup_window(self):
         self.setWindowTitle("StreamSub")
-        self.setFixedSize(450, 740)
+        self.setMinimumSize(450, 740)
+        self.resize(450, 740)
         self.setStyleSheet(DARK_STYLE)
 
     def _setup_ui(self):
@@ -157,7 +158,7 @@ class ControlPanel(QWidget):
         self.buffer_combo = QComboBox()
         for label, max_s, min_s in BUFFER_PRESETS:
             self.buffer_combo.addItem(label, (max_s, min_s))
-        self.buffer_combo.setCurrentIndex(1)  # default: Balanced (5s)
+        self.buffer_combo.setCurrentIndex(2)  # default: Accurate (8s)
         self._lbl_buffer = QLabel(t("label_buffer", self._lang))
         audio_form.addRow(self._lbl_buffer, self.buffer_combo)
 
@@ -235,9 +236,9 @@ class ControlPanel(QWidget):
         log_layout = QVBoxLayout(self._log_grp)
         self.log_area = QTextEdit()
         self.log_area.setReadOnly(True)
-        self.log_area.setMaximumHeight(140)
+        self.log_area.setMinimumHeight(100)
         log_layout.addWidget(self.log_area)
-        root.addWidget(self._log_grp)
+        root.addWidget(self._log_grp, 1)  # stretch factor = 1, expands with window
 
     # --- Language switching ---
 
