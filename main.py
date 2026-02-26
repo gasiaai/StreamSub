@@ -49,16 +49,22 @@ sys.excepthook = global_exception_handler
 
 
 def main():
+    from PyQt6.QtCore import QLocale
     from PyQt6.QtWidgets import QApplication
     from ui.control_panel import ControlPanel
 
     app = QApplication(sys.argv)
     app.setApplicationName("StreamSub")
 
+    # Force Arabic numerals (0-9) regardless of system locale
+    QLocale.setDefault(QLocale(QLocale.Language.C))
+
     panel = ControlPanel()
     panel.show()
 
-    sys.exit(app.exec())
+    ret = app.exec()
+    # Force-kill process so lingering threads (PortAudio, CUDA) don't keep terminal open
+    os._exit(ret)
 
 
 if __name__ == "__main__":

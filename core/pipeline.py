@@ -10,7 +10,7 @@ from PyQt6.QtCore import QThread, pyqtSignal
 from config import SAMPLE_RATE, AUDIO_BUFFER_MAX_SEC, AUDIO_BUFFER_MIN_SEC
 from core.audio import AudioCapture
 from core.asr import ASREngine
-from core.translator import Translator, ensure_ollama_model
+from core.translator import Translator, ensure_ollama_model, TranslationTimeout
 
 log = logging.getLogger(__name__)
 
@@ -40,6 +40,7 @@ class Pipeline(QThread):
         self.buffer_min_sec = buffer_min_sec
         self._stop_flag = False
         self._translators: dict[str, Translator] = {}
+        self._pending_text = ""  # accumulated source text from timed-out rounds
 
     def run(self):
         """Top-level run — everything wrapped so no exception kills the process."""
@@ -247,12 +248,19 @@ class Pipeline(QThread):
             self.status.emit("Listening...")
             return
 
+        # Prepend pending text from previous timeout
+        if self._pending_text:
+            log.info("Prepending pending text: %s", self._pending_text[:60])
+            source_text = self._pending_text + " " + source_text
+            self._pending_text = ""
+
         log.info("ASR: %s", source_text)
         self.transcribed.emit(source_text)
 
         # --- Translate to all target languages ---
         self.status.emit("Translating...")
         results = {}
+        any_timeout = False
         for lang, translator in self._translators.items():
             if self._stop_flag:
                 return
@@ -260,11 +268,21 @@ class Pipeline(QThread):
                 result = translator.translate(source_text)
                 if result:
                     results[lang] = result
+            except TranslationTimeout:
+                log.warning("Translation timeout for %s — will retry next round", lang)
+                any_timeout = True
             except Exception as e:
                 log.error("Translation error (%s): %s", lang, e, exc_info=True)
 
         if self._stop_flag:
             return
+
+        # Save source text for retry if any translation timed out
+        if any_timeout:
+            self._pending_text = source_text
+            # Safety cap to prevent unbounded growth
+            if len(self._pending_text) > 500:
+                self._pending_text = self._pending_text[-300:]
 
         if results:
             log.info("Translated: %s", results)

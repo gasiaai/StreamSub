@@ -11,6 +11,7 @@ from PyQt6.QtWidgets import (
 from core.audio import list_audio_devices
 from core.pipeline import Pipeline
 from ui.overlay import SubtitleOverlay
+from ui.overlay_settings import OverlaySettingsDialog
 from ui.translations import UI_LANGUAGES, t
 from settings import load_settings, save_settings
 from config import APP_VERSION, WHISPER_MODEL, OLLAMA_MODEL, INPUT_LANGUAGES, TARGET_LANGUAGES, BUFFER_PRESETS
@@ -142,6 +143,14 @@ class ControlPanel(QWidget):
             self.lang_combo.addItem(label, code)
         self.lang_combo.currentIndexChanged.connect(self._apply_language)
         lang_row.addWidget(self.lang_combo)
+        self._gear_btn = QPushButton("\u2699")
+        self._gear_btn.setToolTip(t("btn_overlay_settings", self._lang))
+        self._gear_btn.setFixedSize(30, 30)
+        self._gear_btn.setStyleSheet(
+            "font-size: 16px; padding: 0; min-height: 0;"
+        )
+        self._gear_btn.clicked.connect(self._open_overlay_settings)
+        lang_row.addWidget(self._gear_btn)
         lang_row.addStretch()
         root.addLayout(lang_row)
 
@@ -266,18 +275,32 @@ class ControlPanel(QWidget):
         # Only update status if idle
         if not self._pipeline:
             self.status_label.setText(t("status_ready", lang))
+        self._gear_btn.setToolTip(t("btn_overlay_settings", lang))
+
+    # --- Overlay settings ---
+
+    def _open_overlay_settings(self):
+        dlg = OverlaySettingsDialog(
+            self._overlay.get_settings(), lang=self._lang, parent=self,
+        )
+        dlg.settings_changed.connect(self._overlay.apply_settings)
+        if dlg.exec():
+            self._overlay.apply_settings(dlg.get_settings())
+            self._save_settings()
 
     # --- Settings persistence ---
 
     def _save_settings(self):
-        save_settings({
+        data = {
             "device_name": self.device_combo.currentText(),
             "whisper_model": self.whisper_combo.currentText(),
             "input_language": self.input_lang_combo.currentIndex(),
             "target_languages": self._get_target_langs(),
             "buffer_preset": self.buffer_combo.currentIndex(),
             "ui_language": self._lang,
-        })
+        }
+        data.update(self._overlay.get_settings())
+        save_settings(data)
 
     def _restore_settings(self):
         s = load_settings()
@@ -323,6 +346,11 @@ class ControlPanel(QWidget):
             idx = self.device_combo.findText(device_name)
             if idx >= 0:
                 self.device_combo.setCurrentIndex(idx)
+
+        # Overlay appearance
+        overlay_keys = {k: v for k, v in s.items() if k.startswith("overlay_")}
+        if overlay_keys:
+            self._overlay.apply_settings(overlay_keys)
 
     # --- Load helpers ---
 
@@ -393,6 +421,7 @@ class ControlPanel(QWidget):
         self.stop_btn.setEnabled(True)
         self._set_controls_enabled(False)
         self._overlay.show()
+        self._overlay.start_silence_timer()
 
     def _on_stop(self):
         if self._pipeline:
@@ -455,6 +484,7 @@ class ControlPanel(QWidget):
         self.start_btn.setEnabled(True)
         self.stop_btn.setEnabled(False)
         self._set_controls_enabled(True)
+        self._overlay.cancel_silence_timer()
         self._overlay.clear()
         self.status_label.setText(t("status_ready", self._lang))
 

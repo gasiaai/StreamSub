@@ -111,12 +111,6 @@ class ASREngine:
                           seg.no_speech_prob, seg.text[:60])
                 continue
 
-            # Skip very low confidence (avg_logprob close to 0 = uncertain)
-            if seg.avg_logprob < -1.0:
-                log.debug("Skipping low-confidence segment (avg_logprob=%.2f): %s",
-                          seg.avg_logprob, seg.text[:60])
-                continue
-
             text = seg.text.strip()
             if text:
                 texts.append(text)

@@ -11,6 +11,11 @@ from config import (
 
 log = logging.getLogger(__name__)
 
+
+class TranslationTimeout(Exception):
+    """Raised when translation request times out (distinct from other errors)."""
+    pass
+
 # Regex to strip leaked CJK characters from non-CJK target languages
 _CJK_RE = re.compile(
     r'[\u3000-\u303F'   # CJK punctuation
@@ -124,6 +129,9 @@ class Translator:
             r.raise_for_status()
             result = r.json().get("response", "").strip()
             return self._clean_result(result)
+        except requests.exceptions.Timeout as e:
+            log.warning("Translation timeout (%s): %s", self.target_lang, e)
+            raise TranslationTimeout(str(e)) from e
         except Exception as e:
             log.error("Translation error: %s", e)
             return f"[Translation error: {e}]"

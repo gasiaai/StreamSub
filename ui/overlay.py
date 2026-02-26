@@ -19,15 +19,16 @@ from config import (
     OVERLAY_FONT_MIN,
     OVERLAY_FADE_TIMEOUT_MS,
     OVERLAY_BG_OPACITY,
+    OVERLAY_BOX_COLOR_DEFAULT,
+    OVERLAY_SOURCE_COLOR_DEFAULT,
+    OVERLAY_SOURCE_OPACITY_DEFAULT,
+    OVERLAY_TRANS_COLOR_DEFAULT,
+    OVERLAY_TRANS_OPACITY_DEFAULT,
+    OVERLAY_SOURCE_FONT_DEFAULT,
+    OVERLAY_TRANS_FONT_DEFAULT,
+    OVERLAY_SILENCE_FADE_DEFAULT,
+    OVERLAY_SILENCE_TIMEOUT_DEFAULT,
 )
-
-# Color palette for multiple translation labels
-_TRANS_COLORS = [
-    "rgba(255, 255, 255, 255)",   # white
-    "rgba(250, 204, 21, 255)",    # gold
-    "rgba(96, 165, 250, 255)",    # blue
-    "rgba(52, 211, 153, 255)",    # green
-]
 
 _EDGE_MARGIN = 10  # pixels from edge to trigger resize cursor
 
@@ -59,11 +60,32 @@ class SubtitleOverlay(QWidget):
         self._label_widths: dict[int, int] = {}  # label id → needed width
         self._layout = None
         self._max_width = 1200
+
+        # --- Customizable appearance ---
+        self._box_color = QColor(OVERLAY_BOX_COLOR_DEFAULT)
+        self._box_opacity = OVERLAY_BG_OPACITY
+        self._source_color_hex = OVERLAY_SOURCE_COLOR_DEFAULT
+        self._source_opacity = OVERLAY_SOURCE_OPACITY_DEFAULT
+        self._trans_color_hex = OVERLAY_TRANS_COLOR_DEFAULT
+        self._trans_opacity = OVERLAY_TRANS_OPACITY_DEFAULT
+        self._source_font_family = OVERLAY_SOURCE_FONT_DEFAULT
+        self._trans_font_family = OVERLAY_TRANS_FONT_DEFAULT
+        self._silence_fade_enabled = OVERLAY_SILENCE_FADE_DEFAULT
+        self._silence_fade_timeout_ms = OVERLAY_SILENCE_TIMEOUT_DEFAULT * 1000
+
         self._setup_window()
         self._setup_ui()
         self._setup_fade_timer()
         self._calc_screen_limits()
         self._position_default()
+
+    # --- Helpers ---
+
+    @staticmethod
+    def _hex_to_rgba(hex_color: str, alpha: int) -> str:
+        """Convert '#RRGGBB' + alpha (0-255) to 'rgba(R, G, B, A)' string."""
+        c = QColor(hex_color)
+        return f"rgba({c.red()}, {c.green()}, {c.blue()}, {alpha})"
 
     def _calc_height(self) -> int:
         return OVERLAY_HEIGHT_BASE + len(self._target_langs) * OVERLAY_HEIGHT_PER_LANG
@@ -94,21 +116,22 @@ class SubtitleOverlay(QWidget):
 
     def _build_labels(self):
         """Create source label + one translation label per target language."""
+        src_rgba = self._hex_to_rgba(self._source_color_hex, self._source_opacity)
         self._source_label = QLabel("")
         self._source_label.setWordWrap(True)
         self._source_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._source_label.setFont(QFont("Meiryo", OVERLAY_FONT_MAX_SOURCE))
-        self._source_label.setStyleSheet("color: rgba(200, 200, 200, 180);")
+        self._source_label.setFont(QFont(self._source_font_family, OVERLAY_FONT_MAX_SOURCE))
+        self._source_label.setStyleSheet(f"color: {src_rgba};")
         self._layout.addWidget(self._source_label)
 
+        trans_rgba = self._hex_to_rgba(self._trans_color_hex, self._trans_opacity)
         self._trans_labels.clear()
         for i, lang in enumerate(self._target_langs):
             label = QLabel("")
             label.setWordWrap(True)
             label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            label.setFont(QFont("Segoe UI", OVERLAY_FONT_MAX_TRANS, QFont.Weight.Bold))
-            color = _TRANS_COLORS[i % len(_TRANS_COLORS)]
-            label.setStyleSheet(f"color: {color};")
+            label.setFont(QFont(self._trans_font_family, OVERLAY_FONT_MAX_TRANS, QFont.Weight.Bold))
+            label.setStyleSheet(f"color: {trans_rgba};")
             self._layout.addWidget(label)
             self._trans_labels[lang] = label
 
@@ -139,6 +162,11 @@ class SubtitleOverlay(QWidget):
         self._fade_step_timer = QTimer(self)
         self._fade_step_timer.setInterval(50)
         self._fade_step_timer.timeout.connect(self._fade_step)
+
+        # Silence auto-fade timer
+        self._silence_timer = QTimer(self)
+        self._silence_timer.setSingleShot(True)
+        self._silence_timer.timeout.connect(self._start_fade)
 
     def _position_default(self):
         """Place at bottom-center of primary screen."""
@@ -266,10 +294,67 @@ class SubtitleOverlay(QWidget):
         for label in self._trans_labels.values():
             label.setText("")
         self._label_widths.clear()
+        self._silence_timer.stop()
         # Shrink back to default
         center_x = self.x() + self.width() // 2
         new_x = center_x - OVERLAY_WIDTH_DEFAULT // 2
         self.setGeometry(new_x, self.y(), OVERLAY_WIDTH_DEFAULT, self.height())
+
+    # --- Settings API ---
+
+    def apply_settings(self, settings: dict):
+        """Apply overlay appearance settings from the settings dialog."""
+        self._box_color = QColor(settings.get("overlay_box_color", OVERLAY_BOX_COLOR_DEFAULT))
+        self._box_opacity = settings.get("overlay_box_opacity", OVERLAY_BG_OPACITY)
+        self._source_color_hex = settings.get("overlay_source_color", OVERLAY_SOURCE_COLOR_DEFAULT)
+        self._source_opacity = settings.get("overlay_source_opacity", OVERLAY_SOURCE_OPACITY_DEFAULT)
+        self._trans_color_hex = settings.get("overlay_trans_color", OVERLAY_TRANS_COLOR_DEFAULT)
+        self._trans_opacity = settings.get("overlay_trans_opacity", OVERLAY_TRANS_OPACITY_DEFAULT)
+        self._source_font_family = settings.get("overlay_source_font", OVERLAY_SOURCE_FONT_DEFAULT)
+        self._trans_font_family = settings.get("overlay_trans_font", OVERLAY_TRANS_FONT_DEFAULT)
+        self._silence_fade_enabled = settings.get("overlay_silence_fade", OVERLAY_SILENCE_FADE_DEFAULT)
+        self._silence_fade_timeout_ms = settings.get("overlay_silence_timeout", OVERLAY_SILENCE_TIMEOUT_DEFAULT) * 1000
+
+        # Re-apply to existing labels
+        if self._source_label:
+            src_rgba = self._hex_to_rgba(self._source_color_hex, self._source_opacity)
+            self._source_label.setStyleSheet(f"color: {src_rgba};")
+            font = self._source_label.font()
+            font.setFamily(self._source_font_family)
+            self._source_label.setFont(font)
+
+        trans_rgba = self._hex_to_rgba(self._trans_color_hex, self._trans_opacity)
+        for label in self._trans_labels.values():
+            label.setStyleSheet(f"color: {trans_rgba};")
+            font = label.font()
+            font.setFamily(self._trans_font_family)
+            label.setFont(font)
+
+        self.update()  # repaint for box color/opacity
+
+    def get_settings(self) -> dict:
+        """Return current overlay settings for persistence."""
+        return {
+            "overlay_box_color": self._box_color.name(),
+            "overlay_box_opacity": self._box_opacity,
+            "overlay_source_color": self._source_color_hex,
+            "overlay_source_opacity": self._source_opacity,
+            "overlay_trans_color": self._trans_color_hex,
+            "overlay_trans_opacity": self._trans_opacity,
+            "overlay_source_font": self._source_font_family,
+            "overlay_trans_font": self._trans_font_family,
+            "overlay_silence_fade": self._silence_fade_enabled,
+            "overlay_silence_timeout": self._silence_fade_timeout_ms // 1000,
+        }
+
+    def start_silence_timer(self):
+        """Start the silence fade timer. Called when pipeline starts."""
+        if self._silence_fade_enabled and self._silence_fade_timeout_ms > 0:
+            self._silence_timer.start(self._silence_fade_timeout_ms)
+
+    def cancel_silence_timer(self):
+        """Cancel the silence fade timer."""
+        self._silence_timer.stop()
 
     # --- Fade logic ---
 
@@ -279,6 +364,10 @@ class SubtitleOverlay(QWidget):
         self.setWindowOpacity(1.0)
         self._fade_step_timer.stop()
         self._fade_timer.stop()
+        # Restart silence timer
+        if self._silence_fade_enabled and self._silence_fade_timeout_ms > 0:
+            self._silence_timer.stop()
+            self._silence_timer.start(self._silence_fade_timeout_ms)
         if not self.isVisible():
             self.show()
 
@@ -299,7 +388,9 @@ class SubtitleOverlay(QWidget):
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         path = QPainterPath()
         path.addRoundedRect(0, 0, self.width(), self.height(), 12, 12)
-        painter.fillPath(path, QColor(24, 24, 27, OVERLAY_BG_OPACITY))
+        color = QColor(self._box_color)
+        color.setAlpha(self._box_opacity)
+        painter.fillPath(path, color)
         painter.end()
 
     # --- Edge / corner detection ---

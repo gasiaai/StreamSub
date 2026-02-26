@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-APP_VERSION = "1.0.0"
+APP_VERSION = "1.0.1"
 
 # --- Audio ---
 SAMPLE_RATE = 16000
@@ -94,6 +94,17 @@ OVERLAY_FONT_MAX_TRANS = 22     # max font size for translated text
 OVERLAY_FONT_MIN = 6            # minimum font size floor
 OVERLAY_FADE_TIMEOUT_MS = 8000
 OVERLAY_BG_OPACITY = 180  # 0-255
+
+# Overlay appearance defaults (overridden by user settings)
+OVERLAY_BOX_COLOR_DEFAULT = "#18181b"
+OVERLAY_SOURCE_COLOR_DEFAULT = "#c8c8c8"
+OVERLAY_SOURCE_OPACITY_DEFAULT = 180
+OVERLAY_TRANS_COLOR_DEFAULT = "#ffffff"
+OVERLAY_TRANS_OPACITY_DEFAULT = 255
+OVERLAY_SOURCE_FONT_DEFAULT = "Meiryo"
+OVERLAY_TRANS_FONT_DEFAULT = "Segoe UI"
+OVERLAY_SILENCE_FADE_DEFAULT = False
+OVERLAY_SILENCE_TIMEOUT_DEFAULT = 10  # seconds
 
 # --- Whisper model storage ---
 MODEL_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Model")
