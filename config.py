@@ -3,6 +3,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+APP_VERSION = "1.0.0"
+
 # --- Audio ---
 SAMPLE_RATE = 16000
 CHANNELS = 1

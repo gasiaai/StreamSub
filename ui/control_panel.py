@@ -13,7 +13,7 @@ from core.pipeline import Pipeline
 from ui.overlay import SubtitleOverlay
 from ui.translations import UI_LANGUAGES, t
 from settings import load_settings, save_settings
-from config import WHISPER_MODEL, OLLAMA_MODEL, INPUT_LANGUAGES, TARGET_LANGUAGES, BUFFER_PRESETS
+from config import APP_VERSION, WHISPER_MODEL, OLLAMA_MODEL, INPUT_LANGUAGES, TARGET_LANGUAGES, BUFFER_PRESETS
 
 
 DARK_STYLE = """
@@ -109,7 +109,7 @@ class ControlPanel(QWidget):
         self._restore_settings()
 
     def _setup_window(self):
-        self.setWindowTitle("StreamSub")
+        self.setWindowTitle(f"StreamSub v{APP_VERSION}")
         self.setMinimumSize(450, 740)
         self.resize(450, 740)
         self.setStyleSheet(DARK_STYLE)
@@ -120,7 +120,7 @@ class ControlPanel(QWidget):
         root.setSpacing(8)
 
         # Title
-        title = QLabel("StreamSub")
+        title = QLabel(f"StreamSub  v{APP_VERSION}")
         title.setFont(QFont("Segoe UI", 16, QFont.Weight.Bold))
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         root.addWidget(title)
@@ -247,7 +247,7 @@ class ControlPanel(QWidget):
         if not lang:
             return
         self._lang = lang
-        self.setWindowTitle(t("window_title", lang))
+        self.setWindowTitle(f"{t('window_title', lang)} v{APP_VERSION}")
         self._subtitle_label.setText(t("subtitle", lang))
         self._lbl_ui_lang.setText(t("label_ui_lang", lang))
         self._audio_grp.setTitle(t("group_audio", lang))
