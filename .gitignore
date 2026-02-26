@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.env
+
+# Whisper model files (downloaded at runtime)
+Model/*
+!Model/.gitkeep
+
+# Leftover from experiments
+vocab/
+
+# Logs
+*.log
+
+# User settings (saved at runtime)
+settings.json
+
+# Session transcripts
+transcripts/
+
+# IDE
+.vscode/
+.idea/
