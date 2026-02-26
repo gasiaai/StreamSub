@@ -4,7 +4,11 @@
 [English](#english) | [ไทย](#ภาษาไทย) | [日本語](#日本語) | [中文](#中文) | [한국어](#한국어)
 
 **[Download ZIP](https://github.com/gasiaai/StreamSub/archive/refs/heads/main.zip)** | `git clone https://github.com/gasiaai/StreamSub.git`
+### Support
 
+<a href="https://www.buymeacoffee.com/gasia" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
+
+[TipMe](https://tipme.in.th/gasia)
 ---
 
 ## English
@@ -450,11 +454,7 @@ API 키 불필요, 클라우드 서비스 불필요 — 모든 것이 로컬 GPU
 
 **Gasia** — [Facebook](https://www.facebook.com/gasiaai123)
 
-### Support
 
-<a href="https://www.buymeacoffee.com/gasia" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
-
-[TipMe](https://tipme.in.th/gasia)
 
 ## License
 
