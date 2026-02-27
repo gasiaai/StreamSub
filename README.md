@@ -37,7 +37,7 @@ No API keys, no cloud services — everything runs locally on your GPU.
 | **GPU** | NVIDIA 6 GB VRAM | NVIDIA 8-12 GB VRAM |
 | **RAM** | 8 GB | 16 GB |
 | **OS** | Windows 10 | Windows 10/11 |
-| **Python** | 3.10+ | 3.11+ |
+| **Python (NVIDIA GPU)** | 3.10+ | 3.11+ |
 
 > **VRAM breakdown:**
 > Whisper large-v3-turbo (~1.5 GB) + Ollama model (~2.5 GB) + overhead (~1-2 GB)
@@ -178,7 +178,7 @@ StreamSub/
 | **GPU** | NVIDIA 6 GB VRAM | NVIDIA 8-12 GB VRAM |
 | **RAM** | 8 GB | 16 GB |
 | **OS** | Windows 10 | Windows 10/11 |
-| **Python** | 3.10+ | 3.11+ |
+| **Python (NVIDIA GPU)** | 3.10+ | 3.11+ |
 
 > **การใช้ VRAM:**
 > Whisper large-v3-turbo (~1.5 GB) + Ollama model (~2.5 GB) + overhead (~1-2 GB)
@@ -254,7 +254,7 @@ APIキー不要、クラウドサービス不要 — すべてローカルGPUで
 | **GPU** | NVIDIA 6 GB VRAM | NVIDIA 8-12 GB VRAM |
 | **RAM** | 8 GB | 16 GB |
 | **OS** | Windows 10 | Windows 10/11 |
-| **Python** | 3.10+ | 3.11+ |
+| **Python (NVIDIA GPU)** | 3.10+ | 3.11+ |
 
 > **VRAM内訳：**
 > Whisper large-v3-turbo（約1.5 GB）+ Ollamaモデル（約2.5 GB）+ オーバーヘッド（約1-2 GB）
@@ -328,7 +328,7 @@ APIキー不要、クラウドサービス不要 — すべてローカルGPUで
 | **GPU** | NVIDIA 6 GB VRAM | NVIDIA 8-12 GB VRAM |
 | **RAM** | 8 GB | 16 GB |
 | **OS** | Windows 10 | Windows 10/11 |
-| **Python** | 3.10+ | 3.11+ |
+| **Python (NVIDIA GPU)** | 3.10+ | 3.11+ |
 
 > **显存用量：**
 > Whisper large-v3-turbo（约1.5 GB）+ Ollama 模型（约2.5 GB）+ 额外开销（约1-2 GB）
@@ -402,7 +402,7 @@ API 키 불필요, 클라우드 서비스 불필요 — 모든 것이 로컬 GPU
 | **GPU** | NVIDIA 6 GB VRAM | NVIDIA 8-12 GB VRAM |
 | **RAM** | 8 GB | 16 GB |
 | **OS** | Windows 10 | Windows 10/11 |
-| **Python** | 3.10+ | 3.11+ |
+| **Python (NVIDIA GPU)** | 3.10+ | 3.11+ |
 
 > **VRAM 사용량:**
 > Whisper large-v3-turbo (~1.5 GB) + Ollama 모델 (~2.5 GB) + 오버헤드 (~1-2 GB)
