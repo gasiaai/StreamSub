@@ -17,6 +17,8 @@ from config import (
     OVERLAY_TRANS_OPACITY_DEFAULT,
     OVERLAY_SOURCE_FONT_DEFAULT,
     OVERLAY_TRANS_FONT_DEFAULT,
+    OVERLAY_EXTRA_HEIGHT_DEFAULT,
+    OVERLAY_EXTRA_HEIGHT_MAX,
     OVERLAY_SILENCE_FADE_DEFAULT,
     OVERLAY_SILENCE_TIMEOUT_DEFAULT,
 )
@@ -183,6 +185,16 @@ class OverlaySettingsDialog(QDialog):
         self._trans_font_combo.addItems(families)
         form.addRow(t("dlg_trans_font", self._lang), self._trans_font_combo)
 
+        # --- Extra height ---
+        height_row = QHBoxLayout()
+        self._height_slider = QSlider(Qt.Orientation.Horizontal)
+        self._height_slider.setRange(0, OVERLAY_EXTRA_HEIGHT_MAX)
+        self._height_lbl = QLabel()
+        self._height_lbl.setFixedWidth(36)
+        height_row.addWidget(self._height_slider, 1)
+        height_row.addWidget(self._height_lbl)
+        form.addRow(t("dlg_extra_height", self._lang), height_row)
+
         layout.addLayout(form)
 
         # --- Silence auto-fade ---
@@ -218,6 +230,7 @@ class OverlaySettingsDialog(QDialog):
         self._trans_opacity_slider.valueChanged.connect(self._on_trans_opacity)
         self._src_font_combo.currentTextChanged.connect(lambda _: self._emit_live())
         self._trans_font_combo.currentTextChanged.connect(lambda _: self._emit_live())
+        self._height_slider.valueChanged.connect(self._on_height_changed)
         self._fade_cb.stateChanged.connect(lambda _: self._emit_live())
         self._fade_spin.valueChanged.connect(lambda _: self._emit_live())
 
@@ -235,6 +248,10 @@ class OverlaySettingsDialog(QDialog):
         self._trans_opacity_lbl.setText(str(v))
         self._emit_live()
 
+    def _on_height_changed(self, v):
+        self._height_lbl.setText(f"+{v}px")
+        self._emit_live()
+
     # --- Gather / emit ---
 
     def _gather(self) -> dict:
@@ -247,6 +264,7 @@ class OverlaySettingsDialog(QDialog):
             "overlay_trans_opacity": self._trans_opacity_slider.value(),
             "overlay_source_font": self._src_font_combo.currentText(),
             "overlay_trans_font": self._trans_font_combo.currentText(),
+            "overlay_extra_height": self._height_slider.value(),
             "overlay_silence_fade": self._fade_cb.isChecked(),
             "overlay_silence_timeout": self._fade_spin.value(),
         }
@@ -275,6 +293,9 @@ class OverlaySettingsDialog(QDialog):
         if idx >= 0:
             self._trans_font_combo.setCurrentIndex(idx)
 
+        self._height_slider.setValue(s.get("overlay_extra_height", OVERLAY_EXTRA_HEIGHT_DEFAULT))
+        self._height_lbl.setText(f"+{self._height_slider.value()}px")
+
         self._fade_cb.setChecked(s.get("overlay_silence_fade", OVERLAY_SILENCE_FADE_DEFAULT))
         self._fade_spin.setValue(s.get("overlay_silence_timeout", OVERLAY_SILENCE_TIMEOUT_DEFAULT))
 
@@ -288,6 +309,7 @@ class OverlaySettingsDialog(QDialog):
             "overlay_trans_opacity": OVERLAY_TRANS_OPACITY_DEFAULT,
             "overlay_source_font": OVERLAY_SOURCE_FONT_DEFAULT,
             "overlay_trans_font": OVERLAY_TRANS_FONT_DEFAULT,
+            "overlay_extra_height": OVERLAY_EXTRA_HEIGHT_DEFAULT,
             "overlay_silence_fade": OVERLAY_SILENCE_FADE_DEFAULT,
             "overlay_silence_timeout": OVERLAY_SILENCE_TIMEOUT_DEFAULT,
         }

@@ -12,6 +12,7 @@ BLOCK_DURATION_MS = 30  # ms per audio callback block
 
 # --- ASR (faster-whisper) ---
 WHISPER_MODEL = os.getenv("WHISPER_MODEL", "large-v3-turbo")
+WHISPER_MODEL_TH = "Vinxscribe/biodatlab-whisper-th-large-v3-faster"
 WHISPER_DEVICE = "cuda"
 WHISPER_COMPUTE_TYPE = "float16"
 ASR_LANGUAGE = "ja"  # default — overridden by UI dropdown
@@ -103,6 +104,8 @@ OVERLAY_TRANS_COLOR_DEFAULT = "#ffffff"
 OVERLAY_TRANS_OPACITY_DEFAULT = 255
 OVERLAY_SOURCE_FONT_DEFAULT = "Meiryo"
 OVERLAY_TRANS_FONT_DEFAULT = "Segoe UI"
+OVERLAY_EXTRA_HEIGHT_DEFAULT = 0   # extra pixels added to auto-calculated height
+OVERLAY_EXTRA_HEIGHT_MAX = 300     # maximum extra height
 OVERLAY_SILENCE_FADE_DEFAULT = False
 OVERLAY_SILENCE_TIMEOUT_DEFAULT = 10  # seconds
 

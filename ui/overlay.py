@@ -26,6 +26,8 @@ from config import (
     OVERLAY_TRANS_OPACITY_DEFAULT,
     OVERLAY_SOURCE_FONT_DEFAULT,
     OVERLAY_TRANS_FONT_DEFAULT,
+    OVERLAY_EXTRA_HEIGHT_DEFAULT,
+    OVERLAY_EXTRA_HEIGHT_MAX,
     OVERLAY_SILENCE_FADE_DEFAULT,
     OVERLAY_SILENCE_TIMEOUT_DEFAULT,
 )
@@ -70,6 +72,7 @@ class SubtitleOverlay(QWidget):
         self._trans_opacity = OVERLAY_TRANS_OPACITY_DEFAULT
         self._source_font_family = OVERLAY_SOURCE_FONT_DEFAULT
         self._trans_font_family = OVERLAY_TRANS_FONT_DEFAULT
+        self._extra_height = OVERLAY_EXTRA_HEIGHT_DEFAULT
         self._silence_fade_enabled = OVERLAY_SILENCE_FADE_DEFAULT
         self._silence_fade_timeout_ms = OVERLAY_SILENCE_TIMEOUT_DEFAULT * 1000
 
@@ -88,7 +91,7 @@ class SubtitleOverlay(QWidget):
         return f"rgba({c.red()}, {c.green()}, {c.blue()}, {alpha})"
 
     def _calc_height(self) -> int:
-        return OVERLAY_HEIGHT_BASE + len(self._target_langs) * OVERLAY_HEIGHT_PER_LANG
+        return OVERLAY_HEIGHT_BASE + len(self._target_langs) * OVERLAY_HEIGHT_PER_LANG + self._extra_height
 
     def _calc_screen_limits(self):
         screen = QApplication.primaryScreen()
@@ -312,8 +315,15 @@ class SubtitleOverlay(QWidget):
         self._trans_opacity = settings.get("overlay_trans_opacity", OVERLAY_TRANS_OPACITY_DEFAULT)
         self._source_font_family = settings.get("overlay_source_font", OVERLAY_SOURCE_FONT_DEFAULT)
         self._trans_font_family = settings.get("overlay_trans_font", OVERLAY_TRANS_FONT_DEFAULT)
+        self._extra_height = settings.get("overlay_extra_height", OVERLAY_EXTRA_HEIGHT_DEFAULT)
         self._silence_fade_enabled = settings.get("overlay_silence_fade", OVERLAY_SILENCE_FADE_DEFAULT)
         self._silence_fade_timeout_ms = settings.get("overlay_silence_timeout", OVERLAY_SILENCE_TIMEOUT_DEFAULT) * 1000
+
+        # Re-apply height
+        h = self._calc_height()
+        self.setMinimumHeight(h)
+        if self.height() < h:
+            self.resize(self.width(), h)
 
         # Re-apply to existing labels
         if self._source_label:
@@ -343,6 +353,7 @@ class SubtitleOverlay(QWidget):
             "overlay_trans_opacity": self._trans_opacity,
             "overlay_source_font": self._source_font_family,
             "overlay_trans_font": self._trans_font_family,
+            "overlay_extra_height": self._extra_height,
             "overlay_silence_fade": self._silence_fade_enabled,
             "overlay_silence_timeout": self._silence_fade_timeout_ms // 1000,
         }

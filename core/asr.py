@@ -6,6 +6,7 @@ import numpy as np
 log = logging.getLogger(__name__)
 
 from config import (
+    SAMPLE_RATE,
     WHISPER_DEVICE,
     WHISPER_COMPUTE_TYPE,
     ASR_LANGUAGE,
@@ -52,16 +53,26 @@ class ASREngine:
         last_err = None
         for device, compute in attempts:
             try:
-                _status(f"Loading Whisper on {device}/{compute}...")
-                self._model = WhisperModel(
+                _status(f"Loading Whisper '{self._model_size}' on {device}/{compute}...")
+                model = WhisperModel(
                     self._model_size,
                     device=device,
                     compute_type=compute,
                     download_root=MODEL_DIR,
                 )
+                # Probe: run a tiny transcription to verify the backend
+                # actually works (catches missing CUDA libs like cublas64_12.dll
+                # that only surface during inference, not at load time).
+                _status(f"Verifying {device}/{compute} backend...")
+                _probe = np.zeros(SAMPLE_RATE, dtype=np.float32)  # 1s silence
+                segs, _ = model.transcribe(_probe, language="en", beam_size=1)
+                for _ in segs:
+                    pass  # exhaust the generator to trigger encode()
+
+                self._model = model
                 self.device_used = device
                 self.compute_used = compute
-                _status(f"Whisper ready — {device}/{compute}")
+                _status(f"Whisper ready — {self._model_size} ({device}/{compute})")
                 return
             except Exception as e:
                 last_err = e

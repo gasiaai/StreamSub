@@ -60,7 +60,7 @@ class Pipeline(QThread):
         capture = None
 
         # --- Init ASR ---
-        self.status.emit("Loading Whisper model...")
+        self.status.emit(f"Loading model: {self.whisper_model} ...")
         log.info("Loading Whisper model: %s", self.whisper_model)
         try:
             asr = ASREngine(self.whisper_model)
@@ -192,6 +192,7 @@ class Pipeline(QThread):
             # 3. Unload ASR model (deferred — see asr.py)
             if asr is not None:
                 try:
+                    self.status.emit("Unloading model...")
                     log.info("Unloading ASR model...")
                     asr.unload()
                     log.info("ASR model unloaded")
