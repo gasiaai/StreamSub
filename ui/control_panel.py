@@ -1,7 +1,5 @@
 """Control panel — device/model/language selectors, start/stop, log area."""
 
-import os
-
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import (
@@ -16,10 +14,7 @@ from ui.overlay import SubtitleOverlay
 from ui.overlay_settings import OverlaySettingsDialog
 from ui.translations import UI_LANGUAGES, t
 from settings import load_settings, save_settings
-from config import (
-    APP_VERSION, WHISPER_MODEL, WHISPER_MODEL_TH, OLLAMA_MODEL,
-    INPUT_LANGUAGES, TARGET_LANGUAGES, BUFFER_PRESETS, MODEL_DIR,
-)
+from config import APP_VERSION, WHISPER_MODEL, OLLAMA_MODEL, INPUT_LANGUAGES, TARGET_LANGUAGES, BUFFER_PRESETS
 
 
 DARK_STYLE = """
@@ -183,21 +178,8 @@ class ControlPanel(QWidget):
         model_form = QFormLayout(self._model_grp)
 
         self.whisper_combo = QComboBox()
-        _WHISPER_MODELS = [
-            ("large-v3-turbo", "large-v3-turbo"),
-            ("large-v3", "large-v3"),
-            ("medium", "medium"),
-            ("small", "small"),
-            ("base", "base"),
-            ("Thai (biodatlab large-v3)", WHISPER_MODEL_TH),
-        ]
-        for label, model_id in _WHISPER_MODELS:
-            self.whisper_combo.addItem(label, model_id)
-        # Set default
-        for i in range(self.whisper_combo.count()):
-            if self.whisper_combo.itemData(i) == WHISPER_MODEL:
-                self.whisper_combo.setCurrentIndex(i)
-                break
+        self.whisper_combo.addItems(["large-v3-turbo", "large-v3", "medium", "small", "base"])
+        self.whisper_combo.setCurrentText(WHISPER_MODEL)
         self._lbl_whisper = QLabel(t("label_whisper", self._lang))
         model_form.addRow(self._lbl_whisper, self.whisper_combo)
 
@@ -311,7 +293,7 @@ class ControlPanel(QWidget):
     def _save_settings(self):
         data = {
             "device_name": self.device_combo.currentText(),
-            "whisper_model": self.whisper_combo.currentData(),
+            "whisper_model": self.whisper_combo.currentText(),
             "input_language": self.input_lang_combo.currentIndex(),
             "target_languages": self._get_target_langs(),
             "buffer_preset": self.buffer_combo.currentIndex(),
@@ -332,13 +314,12 @@ class ControlPanel(QWidget):
                 self.lang_combo.setCurrentIndex(i)
                 break
 
-        # Whisper model (match by model ID stored in itemData)
+        # Whisper model
         whisper = s.get("whisper_model")
         if whisper:
-            for i in range(self.whisper_combo.count()):
-                if self.whisper_combo.itemData(i) == whisper:
-                    self.whisper_combo.setCurrentIndex(i)
-                    break
+            idx = self.whisper_combo.findText(whisper)
+            if idx >= 0:
+                self.whisper_combo.setCurrentIndex(idx)
 
         # Input language
         input_idx = s.get("input_language")
@@ -398,30 +379,11 @@ class ControlPanel(QWidget):
                                 t("err_no_target", self._lang))
             return
 
-        whisper_model = self.whisper_combo.currentData()
+        whisper_model = self.whisper_combo.currentText()
         ollama_model = OLLAMA_MODEL
         asr_language = self.input_lang_combo.currentData()
         source_lang_label = self.input_lang_combo.currentText()
         buf_max, buf_min = self.buffer_combo.currentData()
-
-        # Auto-select Thai-optimized Whisper model
-        if asr_language == "th" and whisper_model != WHISPER_MODEL_TH:
-            whisper_model = WHISPER_MODEL_TH
-            # Also switch the dropdown so the user can see which model is used
-            for i in range(self.whisper_combo.count()):
-                if self.whisper_combo.itemData(i) == WHISPER_MODEL_TH:
-                    self.whisper_combo.setCurrentIndex(i)
-                    break
-
-        # Check if model needs to be downloaded
-        if "/" in whisper_model:
-            model_dir_name = "models--" + whisper_model.replace("/", "--")
-            if not os.path.isdir(os.path.join(MODEL_DIR, model_dir_name)):
-                QMessageBox.information(
-                    self,
-                    t("msg_thai_model_title", self._lang),
-                    t("msg_thai_model_download", self._lang),
-                )
 
         self._save_settings()
 

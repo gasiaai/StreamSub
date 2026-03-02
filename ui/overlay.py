@@ -108,7 +108,7 @@ class SubtitleOverlay(QWidget):
         self.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating)
         self.setMouseTracking(True)
         h = self._calc_height()
-        self.setMinimumSize(OVERLAY_WIDTH_MIN, h)
+        self.setMinimumSize(OVERLAY_WIDTH_MIN, 50)
         self.resize(OVERLAY_WIDTH_DEFAULT, h)
 
     def _setup_ui(self):
@@ -151,7 +151,6 @@ class SubtitleOverlay(QWidget):
 
         self._target_langs = target_langs
         h = self._calc_height()
-        self.setMinimumHeight(h)
         self.resize(OVERLAY_WIDTH_DEFAULT, h)
         self._build_labels()
         self._calc_screen_limits()
@@ -319,11 +318,9 @@ class SubtitleOverlay(QWidget):
         self._silence_fade_enabled = settings.get("overlay_silence_fade", OVERLAY_SILENCE_FADE_DEFAULT)
         self._silence_fade_timeout_ms = settings.get("overlay_silence_timeout", OVERLAY_SILENCE_TIMEOUT_DEFAULT) * 1000
 
-        # Re-apply height
-        h = self._calc_height()
-        self.setMinimumHeight(h)
-        if self.height() < h:
-            self.resize(self.width(), h)
+        # Re-apply height (always resize to match new setting)
+        h = max(self._calc_height(), 50)
+        self.resize(self.width(), h)
 
         # Re-apply to existing labels
         if self._source_label:
@@ -468,13 +465,12 @@ class SubtitleOverlay(QWidget):
                 else:
                     geo.setRight(geo.left() + self._max_width)
 
-            # Clamp height (min = calculated height)
-            min_h = self._calc_height()
-            if geo.height() < min_h:
+            # Clamp height (floor = 50px)
+            if geo.height() < 50:
                 if "t" in edge:
-                    geo.setTop(geo.bottom() - min_h)
+                    geo.setTop(geo.bottom() - 50)
                 else:
-                    geo.setBottom(geo.top() + min_h)
+                    geo.setBottom(geo.top() + 50)
 
             self.setGeometry(geo)
             return

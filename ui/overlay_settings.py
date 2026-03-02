@@ -18,6 +18,7 @@ from config import (
     OVERLAY_SOURCE_FONT_DEFAULT,
     OVERLAY_TRANS_FONT_DEFAULT,
     OVERLAY_EXTRA_HEIGHT_DEFAULT,
+    OVERLAY_EXTRA_HEIGHT_MIN,
     OVERLAY_EXTRA_HEIGHT_MAX,
     OVERLAY_SILENCE_FADE_DEFAULT,
     OVERLAY_SILENCE_TIMEOUT_DEFAULT,
@@ -188,7 +189,7 @@ class OverlaySettingsDialog(QDialog):
         # --- Extra height ---
         height_row = QHBoxLayout()
         self._height_slider = QSlider(Qt.Orientation.Horizontal)
-        self._height_slider.setRange(0, OVERLAY_EXTRA_HEIGHT_MAX)
+        self._height_slider.setRange(OVERLAY_EXTRA_HEIGHT_MIN, OVERLAY_EXTRA_HEIGHT_MAX)
         self._height_lbl = QLabel()
         self._height_lbl.setFixedWidth(36)
         height_row.addWidget(self._height_slider, 1)
@@ -249,7 +250,7 @@ class OverlaySettingsDialog(QDialog):
         self._emit_live()
 
     def _on_height_changed(self, v):
-        self._height_lbl.setText(f"+{v}px")
+        self._height_lbl.setText(f"{v:+d}px")
         self._emit_live()
 
     # --- Gather / emit ---
@@ -294,7 +295,7 @@ class OverlaySettingsDialog(QDialog):
             self._trans_font_combo.setCurrentIndex(idx)
 
         self._height_slider.setValue(s.get("overlay_extra_height", OVERLAY_EXTRA_HEIGHT_DEFAULT))
-        self._height_lbl.setText(f"+{self._height_slider.value()}px")
+        self._height_lbl.setText(f"{self._height_slider.value():+d}px")
 
         self._fade_cb.setChecked(s.get("overlay_silence_fade", OVERLAY_SILENCE_FADE_DEFAULT))
         self._fade_spin.setValue(s.get("overlay_silence_timeout", OVERLAY_SILENCE_TIMEOUT_DEFAULT))

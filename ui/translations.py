@@ -44,8 +44,6 @@ STRINGS = {
         "dlg_silence_fade": "Auto-fade on silence",
         "dlg_silence_timeout": "Fade after:",
         "dlg_reset_defaults": "Reset Defaults",
-        "msg_thai_model_title": "Thai Model",
-        "msg_thai_model_download": "First time using Thai input — downloading optimized Thai model.\nThis may take a few minutes. Please wait...",
     },
     "th": {
         "window_title": "StreamSub",
@@ -81,8 +79,6 @@ STRINGS = {
         "dlg_silence_fade": "ซ่อนอัตโนมัติเมื่อเงียบ",
         "dlg_silence_timeout": "ซ่อนหลัง:",
         "dlg_reset_defaults": "คืนค่าเริ่มต้น",
-        "msg_thai_model_title": "โมเดลภาษาไทย",
-        "msg_thai_model_download": "ใช้ภาษาไทยเป็นครั้งแรก — กำลังดาวน์โหลดโมเดลไทยโดยเฉพาะ\nอาจใช้เวลาสักครู่ กรุณารอ...",
     },
     "ja": {
         "window_title": "StreamSub",
@@ -118,8 +114,6 @@ STRINGS = {
         "dlg_silence_fade": "無音時に自動フェード",
         "dlg_silence_timeout": "フェードまで:",
         "dlg_reset_defaults": "デフォルトに戻す",
-        "msg_thai_model_title": "タイ語モデル",
-        "msg_thai_model_download": "タイ語入力の初回使用 — 最適化モデルをダウンロード中です。\nしばらくお待ちください...",
     },
     "zh": {
         "window_title": "StreamSub",
@@ -155,8 +149,6 @@ STRINGS = {
         "dlg_silence_fade": "静音时自动淡出",
         "dlg_silence_timeout": "淡出等待:",
         "dlg_reset_defaults": "恢复默认",
-        "msg_thai_model_title": "泰语模型",
-        "msg_thai_model_download": "首次使用泰语输入 — 正在下载优化模型。\n请稍候...",
     },
     "ko": {
         "window_title": "StreamSub",
@@ -192,8 +184,6 @@ STRINGS = {
         "dlg_silence_fade": "무음 시 자동 페이드",
         "dlg_silence_timeout": "페이드 대기:",
         "dlg_reset_defaults": "기본값 복원",
-        "msg_thai_model_title": "태국어 모델",
-        "msg_thai_model_download": "태국어 입력 최초 사용 — 최적화 모델을 다운로드합니다.\n잠시 기다려주세요...",
     },
     "es": {
         "window_title": "StreamSub",
@@ -229,8 +219,6 @@ STRINGS = {
         "dlg_silence_fade": "Desvanecimiento automático",
         "dlg_silence_timeout": "Desvanecer tras:",
         "dlg_reset_defaults": "Restablecer valores",
-        "msg_thai_model_title": "Modelo tailandés",
-        "msg_thai_model_download": "Primer uso del tailandés — descargando modelo optimizado.\nEspere un momento...",
     },
 }
 
